@@ -1,4 +1,33 @@
-- hosts: all
-  become: true
-  roles:
-    - node_app
+---
+- name: Deploy myapp
+  hosts: all
+  become: yes  # Añadir aquí para asegurarnos de que las tareas usen sudo automáticamente
+  tasks:
+    - name: Ensure target dirs exist
+      file:
+        path: "/opt/myapp"
+        state: directory
+
+    - name: Copy app to deploy dir
+      copy:
+        src: /path/to/local/app
+        dest: /opt/myapp
+
+    - name: Install npm dependencies
+      npm:
+        path: /opt/myapp
+        state: present
+
+    - name: Install systemd service unit
+      copy:
+        src: /path/to/myapp.service
+        dest: /etc/systemd/system/myapp.service
+
+    - name: Reload systemd
+      command: systemctl daemon-reload
+
+    - name: Enable and restart myapp service
+      systemd:
+        name: myapp
+        state: restarted
+        enabled: yes
