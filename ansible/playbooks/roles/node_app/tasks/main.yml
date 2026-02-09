@@ -1,0 +1,36 @@
+- name: Ensure target dirs exist
+  file:
+    path: /home/deploy/apps/myapp
+    state: directory
+    owner: deploy
+    group: deploy
+    mode: "0755"
+
+- name: Copy app to deploy dir
+  copy:
+    src: "{{ playbook_dir }}/../../app/"
+    dest: /home/deploy/apps/myapp/app
+    owner: deploy
+    group: deploy
+    mode: "0755"
+
+- name: Install npm dependencies
+  npm:
+    path: /home/deploy/apps/myapp/app
+    production: true
+
+- name: Install systemd service unit
+  template:
+    src: myapp.service.j2
+    dest: /etc/systemd/system/myapp.service
+    mode: "0644"
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: Enable and restart myapp service
+  systemd:
+    name: myapp
+    enabled: true
+    state: restarted
